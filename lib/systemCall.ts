@@ -7,6 +7,8 @@ export interface ISystemCallHandler {
     waitForTask(self: Task, idToWaitFor: number): void;
 
     newTask(self: Task, routine: TaskRoutine): void;
+
+    killTask(self: Task, idToKill: number): void;
 }
 
 export class SystemCallHandler implements ISystemCallHandler {
@@ -32,6 +34,19 @@ export class SystemCallHandler implements ISystemCallHandler {
         const id = this.scheduler.new(routine);
 
         self.nextValue(id);
+
+        this.scheduler.arrange(self);
+    }
+
+    killTask(self: Task, idToKill: number): void {
+        const task = this.scheduler.getTask(idToKill);
+
+        if (task) {
+            task.close();
+            self.nextValue(true);
+        } else {
+            self.nextValue(false);
+        }
 
         this.scheduler.arrange(self);
     }
@@ -77,4 +92,18 @@ class NewTask extends SystemCall {
 
 export function newTask(routine: TaskRoutine) {
     return new NewTask(routine);
+}
+
+class KillTask extends SystemCall {
+    constructor(private idToKill: number) {
+        super();
+    }
+
+    handle(self: Task, handler: ISystemCallHandler): void {
+        handler.killTask(self, this.idToKill);
+    }
+}
+
+export function killTask(id: number) {
+    return new KillTask(id);
 }

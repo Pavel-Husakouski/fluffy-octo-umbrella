@@ -35,4 +35,8 @@ export class Task {
     getWaiting(): Array<Task> {
         return new Array(...this.waiting.values());
     }
+
+    close() {
+        this.target.return(undefined);
+    }
 }
