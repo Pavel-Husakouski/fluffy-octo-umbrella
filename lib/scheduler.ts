@@ -1,5 +1,5 @@
 import { SystemCall, SystemCallHandler } from './systemCall';
-import { Task, TaskRoutine } from './task';
+import { Task, TaskRoutine, TaskState } from './task';
 
 export class Scheduler {
     private readonly systemCallHandler = new SystemCallHandler(this);
@@ -30,17 +30,16 @@ export class Scheduler {
 
     main() {
         while (this.taskMap.size) {
+            let arrange = true;
             const task = this.getNextReady()
             const {done, value: result} = task.run();
 
             if (result instanceof SystemCall) {
                 result.handle(task, this.systemCallHandler);
-                continue;
             }
 
             if (done) {
                 this.drop(task);
-                continue;
             }
 
             this.arrange(task);
@@ -49,14 +48,21 @@ export class Scheduler {
 
     drop(task: Task) {
         this.onTaskDrop(task);
+        task.state = TaskState.Finished;
         this.taskMap.delete(task.id);
 
         for (const t of task.getWaiting()) {
+            t.state = TaskState.Ready;
+            t.nextValue(true);
             this.arrange(t);
         }
     }
 
     arrange(task: Task) {
+        if (task.state !== TaskState.Ready) {
+            return;
+        }
+
         this.ready.push(task);
     }
 

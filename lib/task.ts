@@ -2,7 +2,8 @@ export type TaskRoutine<T = any, TReturn = any, TNext = any> = Generator<T, TRet
 
 export enum TaskState {
     Ready,
-    Waiting
+    Waiting,
+    Finished
 }
 
 export class Task {
@@ -10,13 +11,16 @@ export class Task {
 
     public id = Task.id++;
     private valueToBeSent: any = null;
-    private state: TaskState = TaskState.Ready;
+    private _state: TaskState = TaskState.Ready;
     private waiting = new Map<number, Task>();
 
     constructor(private target: TaskRoutine) {
     }
 
     nextValue(value: any) {
+        if (this.valueToBeSent !== undefined) {
+            throw new Error('duplicate next value call');
+        }
         this.valueToBeSent = value;
     }
 
@@ -36,7 +40,20 @@ export class Task {
         return new Array(...this.waiting.values());
     }
 
+    addWaiting(task: Task) {
+        this.waiting.set(task.id, task);
+    }
+
     close() {
+        this.state = TaskState.Finished;
         this.target.return(undefined);
+    }
+
+    get state() {
+        return this._state;
+    }
+
+    set state(value: TaskState) {
+        this._state = value;
     }
 }
