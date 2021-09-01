@@ -30,7 +30,6 @@ export class Scheduler {
 
     main() {
         while (this.taskMap.size) {
-            let arrange = true;
             const task = this.getNextReady()
             const {done, value: result} = task.run();
 

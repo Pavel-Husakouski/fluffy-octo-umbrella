@@ -15,8 +15,7 @@ function* main(title: string): TaskRoutine<SystemCall | void> {
         console.log('waiting succeed', childId);
     }
     for (let i = 0; i < 5; i++) {
-        console.log(title);
-        yield;
+        console.log(title, yield getTid());
     }
 }
 
