@@ -1,4 +1,4 @@
-export type Subscription = () => void;
+export type Subscription = (result: any) => void;
 
 export class Event {
     private set = new Set<Subscription>();
@@ -10,11 +10,11 @@ export class Event {
         this.set.add(s);
     }
 
-    activate() {
+    activate(result: any) {
         const subscriptions = new Array(...this.set);
         this.set.clear();
         for (const subscription of subscriptions) {
-            subscription();
+            subscription(result);
         }
     }
 }

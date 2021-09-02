@@ -23,11 +23,9 @@ export class SystemCallHandler implements ISystemCallHandler {
         const taskToWaitFor = this.scheduler.getTask(idToWaitFor);
 
         if (taskToWaitFor == null) {
-            self.nextValue(false);
             return;
         }
 
-        self.nextValue(true);
         self.startWaiting(taskToWaitFor);
     }
 

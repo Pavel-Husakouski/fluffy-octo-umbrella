@@ -25,9 +25,8 @@ function* main(title: string): TaskRoutine<SystemCall | void> {
     console.log('target started', target);
     const killer = yield newTask(aKiller('killer', target));
     console.log('killer started', killer);
-    if (yield waitForTask(target)) {
-        console.log('target has been finished', target);
-    }
+    yield waitForTask(target);
+    console.log('target has been finished', target);
     if (yield killTask(killer)) {
         console.log('killer has been finished', killer);
     }

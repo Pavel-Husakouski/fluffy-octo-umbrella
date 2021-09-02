@@ -46,6 +46,7 @@ export class Scheduler {
             }
 
             if (done) {
+                task.result = result;
                 task.close();
             }
 
