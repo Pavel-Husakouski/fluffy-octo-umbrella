@@ -12,6 +12,14 @@ export class Scheduler {
     new(taskRoutine: TaskRoutine) {
         const task = new Task(taskRoutine);
 
+        task.stateChange = (state) => {
+            if(state === TaskState.Closed) {
+                this.onTaskClose(task);
+            } else if (state === TaskState.Ready) {
+                this.arrange(task)
+            }
+        };
+
         this.taskMap.set(task.id, task);
         this.arrange(task);
 
@@ -30,43 +38,32 @@ export class Scheduler {
 
     main() {
         while (this.taskMap.size) {
-            const task = this.getNextReady()
-            const {done, value: result} = task.run();
+            const task = this.getNextReady();
+            const {done, value: result} = task.resume();
 
             if (result instanceof SystemCall) {
                 result.handle(task, this.systemCallHandler);
             }
 
             if (done) {
-                this.drop(task);
+                task.close();
             }
 
             this.arrange(task);
         }
     }
 
-    drop(task: Task) {
-        this.onTaskDrop(task);
-        task.state = TaskState.Finished;
+    onTaskClose(task: Task) {
+        console.assert(this.ready.find( x => x === task) == null, 'Expected task to be not in the ready queue');
         this.taskMap.delete(task.id);
-
-        for (const t of task.getWaiting()) {
-            t.state = TaskState.Ready;
-            t.nextValue(true);
-            this.arrange(t);
-        }
     }
 
     arrange(task: Task) {
-        if (task.state !== TaskState.Ready) {
+        if (!task.isReady()) {
             return;
         }
 
         this.ready.push(task);
-    }
-
-    private onTaskDrop(task: Task) {
-        console.log('Task %d terminated', task.id);
     }
 
     getTask(id: number) {

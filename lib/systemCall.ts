@@ -1,5 +1,5 @@
 import { Scheduler } from './scheduler';
-import { Task, TaskRoutine, TaskState } from './task';
+import { Task, TaskRoutine } from './task';
 
 export interface ISystemCallHandler {
     getTid(self: Task): void;
@@ -27,8 +27,8 @@ export class SystemCallHandler implements ISystemCallHandler {
             return;
         }
 
-        taskToWaitFor.addWaiting(self);
-        self.state = TaskState.Waiting;
+        self.nextValue(true);
+        self.startWaiting(taskToWaitFor);
     }
 
     newTask(self: Task, routine: TaskRoutine): void {
@@ -41,7 +41,7 @@ export class SystemCallHandler implements ISystemCallHandler {
         const task = this.scheduler.getTask(idToKill);
 
         if (task) {
-            task.close();
+            task.kill();
             self.nextValue(true);
         } else {
             self.nextValue(false);

@@ -1,18 +1,24 @@
+import { Event } from './event';
+
 export type TaskRoutine<T = any, TReturn = any, TNext = any> = Generator<T, TReturn, TNext>;
 
 export enum TaskState {
-    Ready,
-    Waiting,
-    Finished
+    Ready = 'Ready',
+    Waiting = 'Waiting',
+    Closed = 'Closed',
+    Killed = 'Killed'
 }
 
 export class Task {
     static id = 0;
 
     public id = Task.id++;
+    public readonly eventClosed = new Event('closed', this);
+
     private valueToBeSent: any = null;
     private _state: TaskState = TaskState.Ready;
-    private waiting = new Map<number, Task>();
+    private readonly blockedBy = new Set<Task>();
+    stateChange: null | ((state: TaskState) => void) = null;
 
     constructor(private target: TaskRoutine) {
     }
@@ -24,7 +30,7 @@ export class Task {
         this.valueToBeSent = value;
     }
 
-    run() {
+    resume() {
         const result = this.target.next(this.valueToBeSent);
 
         this.valueToBeSent = undefined;
@@ -32,28 +38,53 @@ export class Task {
         return result;
     }
 
-    stopWaiting(task: Task) {
-        this.waiting.delete(task.id);
+    startWaiting(blocker: Task) {
+        console.assert(this._state === TaskState.Waiting || this._state === TaskState.Ready, 'Expected state is waiting or ready');
+        this.blockedBy.add(blocker);
+        this.state = TaskState.Waiting;
+        blocker.eventClosed.after(() => {
+            this.stopWaiting(blocker);
+        });
     }
 
-    getWaiting(): Array<Task> {
-        return new Array(...this.waiting.values());
+    stopWaiting(blocker: Task) {
+        console.assert(this._state === TaskState.Waiting, 'Expected state is waiting');
+        this.blockedBy.delete(blocker);
+        this.state = this.blockedBy.size === 0 ? TaskState.Ready : TaskState.Waiting;
     }
 
-    addWaiting(task: Task) {
-        this.waiting.set(task.id, task);
-    }
+    kill() {
+        if (this._state == TaskState.Closed) {
+            return;
+        }
 
-    close() {
-        this.state = TaskState.Finished;
+        this.state = TaskState.Killed;
         this.target.return(undefined);
     }
 
-    get state() {
-        return this._state;
+    close() {
+        console.assert(this._state === TaskState.Killed || this._state === TaskState.Ready, 'Expected state is killed or ready');
+        this.state = TaskState.Closed;
+        this.eventClosed.activate();
     }
 
-    set state(value: TaskState) {
+    isReady() {
+        return this._state === TaskState.Ready;
+    }
+
+    private set state (value: TaskState) {
+        if(this._state === value) {
+            return;
+        }
         this._state = value;
+        this.raiseStateChange(value);
+    }
+
+    private raiseStateChange(value: TaskState) {
+        if(this.stateChange == null) {
+            return;
+        }
+
+        this.stateChange(value);
     }
 }
