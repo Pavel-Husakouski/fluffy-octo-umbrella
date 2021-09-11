@@ -9,6 +9,8 @@ export interface ISystemCallHandler {
     newTask(self: Task, routine: TaskRoutine): void;
 
     killTask(self: Task, idToKill: number): void;
+
+    waitForNewTask(task: Task, routine: TaskRoutine): void;
 }
 
 export class SystemCallHandler implements ISystemCallHandler {
@@ -27,6 +29,12 @@ export class SystemCallHandler implements ISystemCallHandler {
         }
 
         self.startWaiting(taskToWaitFor);
+    }
+
+    waitForNewTask(task: Task, routine: TaskRoutine) {
+        const id = this.scheduler.new(routine);
+
+        this.waitForTask(task, id);
     }
 
     newTask(self: Task, routine: TaskRoutine): void {

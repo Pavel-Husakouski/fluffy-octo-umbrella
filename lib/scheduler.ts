@@ -1,8 +1,8 @@
-import { SystemCall, SystemCallHandler } from './systemCall';
+import { ISystemCallHandler, SystemCall, SystemCallHandler } from './systemCall';
 import { Task, TaskRoutine, TaskState } from './task';
 
 export class Scheduler {
-    private readonly systemCallHandler = new SystemCallHandler(this);
+    private readonly systemCallHandler: ISystemCallHandler = new SystemCallHandler(this);
     private readonly taskMap = new Map<number, Task>();
     private readonly ready = new Array<Task>();
 
@@ -45,6 +45,10 @@ export class Scheduler {
                 result.handle(task, this.systemCallHandler);
             }
 
+            if(isRoutine(result)) {
+                this.systemCallHandler.waitForNewTask(task, result);
+            }
+
             if (done) {
                 task.result = result;
                 task.close();
@@ -70,4 +74,8 @@ export class Scheduler {
     getTask(id: number) {
         return this.taskMap.get(id);
     }
+}
+
+function isRoutine(x: any): x is TaskRoutine {
+    return Object.prototype.toString.call(x) === '[object Generator]';
 }

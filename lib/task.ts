@@ -21,7 +21,7 @@ export class Task {
     stateChange: null | ((state: TaskState) => void) = null;
     result: any = undefined;
 
-    constructor(private target: TaskRoutine) {
+    constructor(private readonly target: TaskRoutine) {
     }
 
     nextValue(value: any) {
