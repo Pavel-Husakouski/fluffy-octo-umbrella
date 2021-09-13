@@ -24,6 +24,6 @@ function* main(title: string): TaskRoutine<SystemCall | TaskRoutine<SystemCall |
 
 const scheduler = new Scheduler();
 
-scheduler.new(main('main'));
+scheduler.newTask(main('main'));
 
 scheduler.main();

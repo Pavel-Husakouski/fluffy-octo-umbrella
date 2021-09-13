@@ -1,15 +1,17 @@
 import { ISystemCallHandler, SystemCall, SystemCallHandler } from './systemCall';
 import { Task, TaskRoutine, TaskState } from './task';
+import { Channel } from './channel';
 
 export class Scheduler {
     private readonly systemCallHandler: ISystemCallHandler = new SystemCallHandler(this);
     private readonly taskMap = new Map<number, Task>();
+    private readonly resourceMap = new Map<number, Channel>();
     private readonly ready = new Array<Task>();
 
     constructor() {
     }
 
-    new(taskRoutine: TaskRoutine) {
+    newTask(taskRoutine: TaskRoutine) {
         const task = new Task(taskRoutine);
 
         task.stateChange = (state) => {
@@ -24,6 +26,18 @@ export class Scheduler {
         this.arrange(task);
 
         return task.id;
+    }
+
+    newChannel() {
+        const resource = new Channel();
+
+        this.resourceMap.set(resource.id, resource);
+
+        return resource.id;
+    }
+
+    getChannel(target: number) {
+        return this.resourceMap.get(target);
     }
 
     private getNextReady(): Task {

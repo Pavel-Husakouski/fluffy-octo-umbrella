@@ -17,10 +17,9 @@ export class Task {
 
     private valueToBeSent: any = null;
     private _state: TaskState = TaskState.Ready;
-    private readonly blockedBy = new Set<Task>();
+    private readonly blockedBy = new Set<Event>();
     stateChange: null | ((state: TaskState) => void) = null;
     result: any = undefined;
-    private readonly messages = new Array<any>();
 
     constructor(private readonly target: TaskRoutine) {
     }
@@ -40,18 +39,18 @@ export class Task {
         return result;
     }
 
-    startWaiting(blocker: Task) {
+    startWaiting(event: Event) {
         console.assert(this._state === TaskState.Waiting || this._state === TaskState.Ready, 'Expected state is waiting or ready');
-        this.blockedBy.add(blocker);
+        this.blockedBy.add(event);
         this.state = TaskState.Waiting;
-        blocker.eventClosed.after((result) => {
-            this.stopWaiting(blocker, result);
+        event.after((result) => {
+            this.stopWaiting(event, result);
         });
     }
 
-    stopWaiting(blocker: Task, result: any) {
+    stopWaiting(event: Event, result: any) {
         console.assert(this._state === TaskState.Waiting, 'Expected state is waiting');
-        this.blockedBy.delete(blocker);
+        this.blockedBy.delete(event);
         this.nextValue(result);
         this.state = this.blockedBy.size === 0 ? TaskState.Ready : TaskState.Waiting;
     }
@@ -89,15 +88,5 @@ export class Task {
         }
 
         this.stateChange(value);
-    }
-
-    postMessage(message: any) {
-        this.messages.push(message);
-    }
-
-    waitForMessage() {
-        if(this.messages.length > 0) {
-            return this.messages.shift();
-        }
     }
 }

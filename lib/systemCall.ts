@@ -12,9 +12,11 @@ export interface ISystemCallHandler {
 
     waitForNewTask(task: Task, routine: TaskRoutine): void;
 
-    postMessage(self: Task, target: number, message: any): void;
+    postMessage(self: Task, channel: number, message: any): void;
 
-    getMessage(self: Task): void;
+    getMessage(self: Task, channel: number): void;
+
+    createChannel(self: Task): void;
 }
 
 export class SystemCallHandler implements ISystemCallHandler {
@@ -32,17 +34,17 @@ export class SystemCallHandler implements ISystemCallHandler {
             return;
         }
 
-        self.startWaiting(taskToWaitFor);
+        self.startWaiting(taskToWaitFor.eventClosed);
     }
 
     waitForNewTask(task: Task, routine: TaskRoutine) {
-        const id = this.scheduler.new(routine);
+        const id = this.scheduler.newTask(routine);
 
         this.waitForTask(task, id);
     }
 
     newTask(self: Task, routine: TaskRoutine): void {
-        const id = this.scheduler.new(routine);
+        const id = this.scheduler.newTask(routine);
 
         self.nextValue(id);
     }
@@ -59,22 +61,30 @@ export class SystemCallHandler implements ISystemCallHandler {
     }
 
     postMessage(self: Task, target: number, message: any): void {
-        const task = this.scheduler.getTask(target);
+        const channel = this.scheduler.getChannel(target);
 
-        if (task) {
-            task.postMessage(message);
+        if (channel) {
+            channel.postMessage(message);
             self.nextValue(true);
         } else {
             self.nextValue(false);
         }
     }
 
-    getMessage(self: Task): void {
-        const message = self.waitForMessage();
+    getMessage(self: Task, target: number): void {
+        const channel = this.scheduler.getChannel(target);
 
-        if (message != null) {
-            self.nextValue(message);
+        if (channel == null) {
+            self.nextValue(undefined); // an exception might be required
+        } else {
+            channel.getMessage(self);
         }
+    }
+
+    createChannel(self: Task): void {
+        const id = this.scheduler.newChannel();
+
+        self.nextValue(id);
     }
 }
 
@@ -149,15 +159,29 @@ export function postMessage(target: number, message: any) {
 }
 
 class GetMessage extends SystemCall {
-    constructor() {
+    constructor(readonly channel: number) {
         super();
     }
 
     handle(self: Task, handler: ISystemCallHandler): void {
-        handler.getMessage(self);
+        handler.getMessage(self, this.channel);
     }
 }
 
-export function getMessage() {
-    return new GetMessage();
+export function getMessage(channel: number) {
+    return new GetMessage(channel);
+}
+
+class CreateChannel extends SystemCall {
+    constructor() {
+        super();
+    }
+
+    handle(self: Task, handler: ISystemCallHandler) {
+        handler.createChannel(self);
+    }
+}
+
+export function createChannel() {
+    return new CreateChannel();
 }

@@ -10,8 +10,8 @@ function* main(title: string): TaskRoutine<SystemCall | void> {
 
 const scheduler = new Scheduler();
 
-scheduler.new(main('foo'));
-scheduler.new(main('bar'));
-scheduler.new(main('zaz'));
+scheduler.newTask(main('foo'));
+scheduler.newTask(main('bar'));
+scheduler.newTask(main('zaz'));
 
 scheduler.main();
