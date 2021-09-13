@@ -20,6 +20,7 @@ export class Task {
     private readonly blockedBy = new Set<Task>();
     stateChange: null | ((state: TaskState) => void) = null;
     result: any = undefined;
+    private readonly messages = new Array<any>();
 
     constructor(private readonly target: TaskRoutine) {
     }
@@ -88,5 +89,15 @@ export class Task {
         }
 
         this.stateChange(value);
+    }
+
+    postMessage(message: any) {
+        this.messages.push(message);
+    }
+
+    waitForMessage() {
+        if(this.messages.length > 0) {
+            return this.messages.shift();
+        }
     }
 }

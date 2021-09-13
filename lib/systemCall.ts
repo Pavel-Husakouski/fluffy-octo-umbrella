@@ -11,6 +11,10 @@ export interface ISystemCallHandler {
     killTask(self: Task, idToKill: number): void;
 
     waitForNewTask(task: Task, routine: TaskRoutine): void;
+
+    postMessage(self: Task, target: number, message: any): void;
+
+    getMessage(self: Task): void;
 }
 
 export class SystemCallHandler implements ISystemCallHandler {
@@ -51,6 +55,25 @@ export class SystemCallHandler implements ISystemCallHandler {
             self.nextValue(true);
         } else {
             self.nextValue(false);
+        }
+    }
+
+    postMessage(self: Task, target: number, message: any): void {
+        const task = this.scheduler.getTask(target);
+
+        if (task) {
+            task.postMessage(message);
+            self.nextValue(true);
+        } else {
+            self.nextValue(false);
+        }
+    }
+
+    getMessage(self: Task): void {
+        const message = self.waitForMessage();
+
+        if (message != null) {
+            self.nextValue(message);
         }
     }
 }
@@ -109,4 +132,32 @@ class KillTask extends SystemCall {
 
 export function killTask(id: number) {
     return new KillTask(id);
+}
+
+class PostMessage extends SystemCall {
+    constructor(readonly target: number, readonly message: any) {
+        super();
+    }
+
+    handle(self: Task, handler: ISystemCallHandler): void {
+        handler.postMessage(self, this.target, this.message);
+    }
+}
+
+export function postMessage(target: number, message: any) {
+    return new PostMessage(target, message);
+}
+
+class GetMessage extends SystemCall {
+    constructor() {
+        super();
+    }
+
+    handle(self: Task, handler: ISystemCallHandler): void {
+        handler.getMessage(self);
+    }
+}
+
+export function getMessage() {
+    return new GetMessage();
 }
