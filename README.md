@@ -13,6 +13,6 @@ The desirable capabilities:
 * ability to stop and resume any logical task
 
 ## Main questions
-*. how the renderer code should look like
-*. how the scheduler should look like
+* how the renderer code should look like
+* how the scheduler should look like
 
