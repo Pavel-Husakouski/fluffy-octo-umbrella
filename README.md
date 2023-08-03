@@ -8,9 +8,9 @@ The restrictions
 2. the content rendering is unable to be moved to webasm
 
 The desirable capabilities:  
- allow parallel processing
- ability to change the priority of tasks that render the content
- ability to stop and resume any logical task
+* allow parallel processing
+* ability to change the priority of tasks that render the content
+* ability to stop and resume any logical task
 
 ## Main questions
 1. how the renderer code should look like
