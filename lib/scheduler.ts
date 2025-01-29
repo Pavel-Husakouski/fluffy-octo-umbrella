@@ -50,10 +50,10 @@ export class Scheduler {
         return task;
     }
 
-    main() {
+    async main() {
         while (this.taskMap.size) {
             const task = this.getNextReady();
-            const {done, value: result} = task.resume();
+            const {done, value: result} = await task.resume();
 
             if (result instanceof SystemCall) {
                 result.handle(task, this.systemCallHandler);
@@ -91,5 +91,5 @@ export class Scheduler {
 }
 
 function isRoutine(x: any): x is TaskRoutine {
-    return Object.prototype.toString.call(x) === '[object Generator]';
+    return Object.prototype.toString.call(x) === '[object AsyncGenerator]';
 }

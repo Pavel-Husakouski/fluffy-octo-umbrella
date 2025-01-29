@@ -2,13 +2,13 @@ import { getTid, killTask, newTask, SystemCall, waitForTask } from '../systemCal
 import { Scheduler } from '../scheduler';
 import { TaskRoutine } from '../task';
 
-function* aTarget(title: string): TaskRoutine<SystemCall | void> {
+async function* aTarget(title: string): TaskRoutine<SystemCall | void> {
     while (true) {
         console.log(title, yield getTid());
     }
 }
 
-function* aKiller(title: string, aTaskToKill: number): TaskRoutine<SystemCall | void> {
+async function* aKiller(title: string, aTaskToKill: number): TaskRoutine<SystemCall | void> {
     for (let i = 0; i < 5; i++) {
         console.log(title, yield getTid());
     }
@@ -20,7 +20,7 @@ function* aKiller(title: string, aTaskToKill: number): TaskRoutine<SystemCall | 
     }
 }
 
-function* main(title: string): TaskRoutine<SystemCall | void> {
+async function* main(title: string): TaskRoutine<SystemCall | void> {
     const target = yield newTask(aTarget('target'));
     console.log('target started', target);
     const killer = yield newTask(aKiller('killer', target));

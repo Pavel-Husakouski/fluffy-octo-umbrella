@@ -1,8 +1,8 @@
-import { createChannel, getMessage, getTid, newTask, postMessage, SystemCall, waitForTask } from '../systemCall';
+import { createChannel, getMessage, newTask, postMessage, SystemCall } from '../systemCall';
 import { Scheduler } from '../scheduler';
 import { TaskRoutine } from '../task';
 
-function* child(title: string, result: string, channel: number ): TaskRoutine<SystemCall | void> {
+async function* child(title: string, result: string, channel: number ): TaskRoutine<SystemCall | void> {
     while(title) {
         const message = yield getMessage(channel);
 
@@ -18,7 +18,7 @@ function* child(title: string, result: string, channel: number ): TaskRoutine<Sy
     return result;
 }
 
-function* main(title: string): TaskRoutine<SystemCall | void> {
+async function* main(title: string): TaskRoutine<SystemCall | void> {
     const channel = yield createChannel();
     yield newTask(child('child', 'a token', channel));
     console.log(title, '>', 'wait a little');

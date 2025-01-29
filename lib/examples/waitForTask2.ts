@@ -1,8 +1,8 @@
-import { getTid, newTask, SystemCall, waitForTask } from '../systemCall';
+import { getTid, SystemCall } from '../systemCall';
 import { Scheduler } from '../scheduler';
 import { TaskRoutine } from '../task';
 
-function* child(title: string, result: string): TaskRoutine<SystemCall | void> {
+async function* child(title: string, result: string): TaskRoutine<SystemCall | void> {
     for (let i = 0; i < 5; i++) {
         console.log(title, yield getTid());
     }
@@ -10,7 +10,7 @@ function* child(title: string, result: string): TaskRoutine<SystemCall | void> {
     return result;
 }
 
-function* main(title: string): TaskRoutine<SystemCall | TaskRoutine<SystemCall | void> | void> {
+async function* main(title: string): TaskRoutine<SystemCall | TaskRoutine<SystemCall | void> | void> {
     const x = yield child('child', 'a token');
     if (x === 'a token') {
         console.log('waiting succeed');

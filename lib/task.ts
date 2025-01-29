@@ -1,6 +1,6 @@
 import { Event } from './event';
 
-export type TaskRoutine<T = any, TReturn = any, TNext = any> = Generator<T, TReturn, TNext>;
+export type TaskRoutine<T = any, TReturn = any, TNext = any> = AsyncGenerator<T, TReturn, TNext>;
 
 export enum TaskState {
     Ready = 'Ready',

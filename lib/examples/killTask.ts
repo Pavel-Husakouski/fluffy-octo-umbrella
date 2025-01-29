@@ -2,13 +2,13 @@ import { getTid, killTask, newTask, SystemCall } from '../systemCall';
 import { Scheduler } from '../scheduler';
 import { TaskRoutine } from '../task';
 
-function* subTask(title: string): TaskRoutine<SystemCall> {
+async function* subTask(title: string): TaskRoutine<SystemCall> {
     while (true) {
         console.log(title, yield getTid());
     }
 }
 
-function* main(title: string): TaskRoutine<SystemCall | void> {
+async function* main(title: string): TaskRoutine<SystemCall | void> {
     const tid = yield getTid();
     const taskId = yield newTask(subTask('sub task'));
     console.log('sub task started', taskId);
