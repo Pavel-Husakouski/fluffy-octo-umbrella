@@ -60,7 +60,7 @@ export class Scheduler {
             }
 
             if(isRoutine(result)) {
-                this.systemCallHandler.waitForNewTask(task, result);
+                this.systemCallHandler.newTask(task, result);
             }
 
             if (done) {
