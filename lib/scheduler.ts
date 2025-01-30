@@ -91,5 +91,5 @@ export class Scheduler {
 }
 
 function isRoutine(x: any): x is TaskRoutine {
-    return Object.prototype.toString.call(x) === '[object AsyncGenerator]';
+    return x?.[Symbol.asyncIterator] != null || x?.[Symbol.iterator] != null;
 }
